@@ -1,7 +1,7 @@
 -   id: commit-msg-format
     name: Validate commit message format
     description: This hook validates that commit messages meet a certain format criteria
-    entry: commit-msg-format
+    entry: hooks/commit-msg-format.sh
     language: script
     # types: [text]
     # stages: [commit, push, manual]
