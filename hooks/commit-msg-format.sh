@@ -6,31 +6,22 @@
 # may need to make the script executable by 'chmod +x .git/hooks/commit-msg'.
 ################################################################################
 
-# An example hook script to prepare the commit log message.
-# Called by "git commit" with the name of the file that has the
-# commit message, followed by the description of the commit
-# message's source.  The hook's purpose is to edit the commit
-# message file.  If the hook fails with a non-zero status,
-# the commit is aborted.
 #
-# To enable this hook, rename this file to "prepare-commit-msg".
+# Automatically adds branch name and branch description to every commit message.
+# Modified from the stackoverflow answer here: http://stackoverflow.com/a/11524807/151445
+#
 
-COMMIT_MSG_FILE=$1
-COMMIT_SOURCE=$2
-SHA1=$3
+# Succeed on all merge messages, as evidenced by MERGE_MSG existing
+[ -f $GIT_DIR/MERGE_MSG ] && exit 0
 
-# Only add custom message when there is no commit source
-# ($COMMIT_SOURCE is empty). Otherwise, keep the default message
-# proposed by Git. Possible commit source: message, template,
-# merge, squash or commit. See https://git-scm.com/docs/githooks
-if [[ -z "$COMMIT_SOURCE" ]]
-then
-  ref=$(git rev-parse --abbrev-ref HEAD)
-  if [[ $ref =~ ^.*((NXP|NXS|NXCONNECT)-[0-9]+).* ]]
-  then
-    hint=$(cat "$COMMIT_MSG_FILE")
-    ticket="${BASH_REMATCH[1]}"
-    echo "${ticket}: " > "$COMMIT_MSG_FILE"
-    echo "$hint" >> "$COMMIT_MSG_FILE"
-  fi
+# Get branch name and description
+NAME=$(git branch | grep '*' | sed 's/* //')
+DESCRIPTION=$(git config branch."$NAME".description)
+
+# Don't apply this logic if we are in a 'detached head' state (rebasing, read-only history, etc)
+# newlines below may need echo -e "\n\n: (etc.)"
+if [ "$NAME" != "(no branch)" ]; then
+	# Append branch name and optional description to COMMIT_MSG
+	# For info on parameters to githooks, run: man githooks
+	echo "\n\n: $NAME $DESCRIPTION" >> "$1"
 fi
