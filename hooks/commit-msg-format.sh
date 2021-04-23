@@ -25,4 +25,4 @@ This script is written by CJ Sveningsson (carl-johan.sveningsson@scania.com), in
 if ! grep -iqE "${commit_regex}" "$1"; then
     echo "${error_msg}" >&2
     exit 1
-f
+fi
