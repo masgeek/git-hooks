@@ -6,17 +6,31 @@
 # may need to make the script executable by 'chmod +x .git/hooks/commit-msg'.
 ################################################################################
 
-# Include any branches for which you wish to disable this script
-if [ -z "$BRANCHES_TO_SKIP" ]; then
-  BRANCHES_TO_SKIP=(master develop staging test)
-fi
-# Get the current branch name and check if it is excluded
-BRANCH_NAME=$(git symbolic-ref --short HEAD)
-BRANCH_EXCLUDED=$(printf "%s\n" "${BRANCHES_TO_SKIP[@]}" | grep -c "^$BRANCH_NAME$")
-# Trim it down to get the parts we're interested in
-TRIMMED=$(echo $BRANCH_NAME | sed -e 's:^\([^-]*-[^-]*\)-.*:\1:' -e \
-    'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/')
-# If it isn't excluded, preprend the trimmed branch identifier to the given message
-if [ -n "$BRANCH_NAME" ] &&  ! [[ $BRANCH_EXCLUDED -eq 1 ]]; then
-  sed -i.bak -e "1s/^/$TRIMMED /" $1
+# An example hook script to prepare the commit log message.
+# Called by "git commit" with the name of the file that has the
+# commit message, followed by the description of the commit
+# message's source.  The hook's purpose is to edit the commit
+# message file.  If the hook fails with a non-zero status,
+# the commit is aborted.
+#
+# To enable this hook, rename this file to "prepare-commit-msg".
+
+COMMIT_MSG_FILE=$1
+COMMIT_SOURCE=$2
+SHA1=$3
+
+# Only add custom message when there is no commit source
+# ($COMMIT_SOURCE is empty). Otherwise, keep the default message
+# proposed by Git. Possible commit source: message, template,
+# merge, squash or commit. See https://git-scm.com/docs/githooks
+if [[ -z "$COMMIT_SOURCE" ]]
+then
+  ref=$(git rev-parse --abbrev-ref HEAD)
+  if [[ $ref =~ ^.*((NXP|NXS|NXCONNECT)-[0-9]+).* ]]
+  then
+    hint=$(cat "$COMMIT_MSG_FILE")
+    ticket="${BASH_REMATCH[1]}"
+    echo "${ticket}: " > "$COMMIT_MSG_FILE"
+    echo "$hint" >> "$COMMIT_MSG_FILE"
+  fi
 fi
