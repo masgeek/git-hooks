@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env sh
+
 ################################################################################
 # Store this file as .git/hooks/commit-msg in your repository in order to
 # enforce checking for proper commit message format before actual commits. You
